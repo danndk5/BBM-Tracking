@@ -1,0 +1,29 @@
+# --- GLOBAL / SENSITIVE ---
+# Menggunakan **/ agar semua .env di subfolder mana pun tercover
+**/.env
+**/.env.local
+.DS_Store
+*.log
+
+# --- BACKEND (Go) ---
+backend-go/bin/
+backend-go/obj/
+backend-go/*.exe
+backend-go/*.test
+
+# --- FRONTEND (React/Vite) ---
+frontend-web/node_modules/
+frontend-web/dist/
+frontend-web/.well-known/
+
+# --- MOBILE (Flutter) ---
+# Gunakan path spesifik untuk mobile_flutter (sesuai nama folder Anda)
+mobile_flutter/.dart_tool/
+mobile_flutter/.flutter-plugins
+mobile_flutter/.flutter-plugins-dependencies
+mobile_flutter/.packages
+mobile_flutter/build/
+mobile_flutter/android/local.properties
+mobile_flutter/android/.gradle/
+mobile_flutter/ios/Flutter/Generated.xcconfig
+mobile_flutter/ios/Flutter/flutter_export_environment.sh
