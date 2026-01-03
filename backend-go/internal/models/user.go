@@ -9,11 +9,10 @@ import (
 
 type User struct {
 	ID        string    `gorm:"type:uuid;primaryKey" json:"id"`
-	Username  string    `gorm:"unique;not null" json:"username"`
+	NoPekerja string    `gorm:"unique;not null;index" json:"no_pekerja"` // LOGIN USERNAME
 	Password  string    `gorm:"not null" json:"-"`
-	Role      string    `gorm:"not null" json:"role"` // "driver" atau "supervisor"
+	Role      string    `gorm:"not null;index" json:"role"` // "driver" atau "supervisor"
 	Nama      string    `gorm:"not null" json:"nama"`
-	NoPekerja *string   `json:"no_pekerja"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

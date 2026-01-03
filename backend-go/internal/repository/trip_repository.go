@@ -20,13 +20,13 @@ func (r *TripRepository) Create(trip *models.Trip) error {
 
 func (r *TripRepository) FindByID(id string) (*models.Trip, error) {
 	var trip models.Trip
-	err := r.db.Preload("Driver").Preload("SPBU").Where("id = ?", id).First(&trip).Error
+	err := r.db.Preload("Driver").Preload("Deliveries.SPBU").Where("id = ?", id).First(&trip).Error
 	return &trip, err
 }
 
 func (r *TripRepository) GetAll() ([]models.Trip, error) {
 	var trips []models.Trip
-	err := r.db.Preload("Driver").Preload("SPBU").Order("created_at DESC").Find(&trips).Error
+	err := r.db.Preload("Driver").Preload("Deliveries.SPBU").Order("created_at DESC").Find(&trips).Error
 	return trips, err
 }
 
@@ -36,6 +36,15 @@ func (r *TripRepository) Update(trip *models.Trip) error {
 
 func (r *TripRepository) GetByDriverID(driverID string) ([]models.Trip, error) {
 	var trips []models.Trip
-	err := r.db.Preload("SPBU").Where("driver_id = ?", driverID).Order("created_at DESC").Find(&trips).Error
+	err := r.db.Preload("Deliveries.SPBU").Where("driver_id = ?", driverID).Order("created_at DESC").Find(&trips).Error
 	return trips, err
+}
+
+func (r *TripRepository) GetActiveTrip(driverID string) (*models.Trip, error) {
+	var trip models.Trip
+	err := r.db.Preload("Deliveries.SPBU").
+		Where("driver_id = ? AND status = ?", driverID, "active").
+		Order("created_at DESC").
+		First(&trip).Error
+	return &trip, err
 }

@@ -18,16 +18,15 @@ func NewAuthService(userRepo *repository.UserRepository) *AuthService {
 }
 
 type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	NoPekerja string `json:"no_pekerja"` // CHANGED from username
+	Password  string `json:"password"`
 }
 
 type RegisterRequest struct {
-	Username  string  `json:"username"`
-	Password  string  `json:"password"`
-	Role      string  `json:"role"`
-	Nama      string  `json:"nama"`
-	NoPekerja *string `json:"no_pekerja"`
+	NoPekerja string `json:"no_pekerja"` // CHANGED from username
+	Password  string `json:"password"`
+	Role      string `json:"role"`
+	Nama      string `json:"nama"`
 }
 
 type AuthResponse struct {
@@ -36,7 +35,7 @@ type AuthResponse struct {
 }
 
 func (s *AuthService) Login(req LoginRequest) (*AuthResponse, error) {
-	user, err := s.userRepo.FindByUsername(req.Username)
+	user, err := s.userRepo.FindByNoPekerja(req.NoPekerja)
 	if err != nil {
 		return nil, errors.New("invalid credentials")
 	}
@@ -57,17 +56,22 @@ func (s *AuthService) Login(req LoginRequest) (*AuthResponse, error) {
 }
 
 func (s *AuthService) Register(req RegisterRequest) (*AuthResponse, error) {
+	// Check if no_pekerja already exists
+	_, err := s.userRepo.FindByNoPekerja(req.NoPekerja)
+	if err == nil {
+		return nil, errors.New("nomor pekerja already exists")
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
 
 	user := &models.User{
-		Username:  req.Username,
+		NoPekerja: req.NoPekerja,
 		Password:  string(hashedPassword),
 		Role:      req.Role,
 		Nama:      req.Nama,
-		NoPekerja: req.NoPekerja,
 	}
 
 	if err := s.userRepo.Create(user); err != nil {

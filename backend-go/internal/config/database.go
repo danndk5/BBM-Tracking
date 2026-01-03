@@ -41,11 +41,19 @@ func MigrateDB(db *gorm.DB) {
 		&models.User{},
 		&models.SPBU{},
 		&models.Trip{},
+		&models.Delivery{}, // NEW
 	)
 
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
 
-	log.Println("✅ Database migrated successfully")
+	// Create indexes for performance
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_trips_driver_id ON trips(driver_id)")
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_trips_status ON trips(status)")
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_deliveries_trip_id ON deliveries(trip_id)")
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_deliveries_status ON deliveries(status)")
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_deliveries_jam_berangkat ON deliveries(jam_berangkat)")
+
+	log.Println("✅ Database migrated successfully with indexes")
 }

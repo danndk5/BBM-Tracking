@@ -14,14 +14,25 @@ func NewSPBUService(spbuRepo *repository.SPBURepository) *SPBUService {
 }
 
 type CreateSPBURequest struct {
-	Nama   string  `json:"nama"`
-	Alamat *string `json:"alamat"`
+	Nama      string   `json:"nama"`
+	Alamat    *string  `json:"alamat"`
+	Latitude  *float64 `json:"latitude"`
+	Longitude *float64 `json:"longitude"`
+	Radius    *float64 `json:"radius"` // Opsional, default 100m
 }
 
 func (s *SPBUService) CreateSPBU(req CreateSPBURequest) (*models.SPBU, error) {
 	spbu := &models.SPBU{
-		Nama:   req.Nama,
-		Alamat: req.Alamat,
+		Nama:      req.Nama,
+		Alamat:    req.Alamat,
+		Latitude:  req.Latitude,
+		Longitude: req.Longitude,
+	}
+
+	if req.Radius != nil {
+		spbu.Radius = *req.Radius
+	} else {
+		spbu.Radius = 100 // Default 100 meter
 	}
 
 	if err := s.spbuRepo.Create(spbu); err != nil {

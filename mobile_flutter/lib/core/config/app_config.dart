@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConfig {
   // API Configuration
-  static String get baseUrl => dotenv.env['BASE_URL'] ?? 'http://localhost:8080/api';
+  static String get baseUrl => dotenv.env['BASE_URL'] ?? 'http://192.168.86.80:8080/api';
   static int get connectTimeout => 30000; // 30 seconds
   static int get receiveTimeout => 30000;
   
