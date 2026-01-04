@@ -5,6 +5,7 @@ import (
 	"bbm-tracking/internal/repository"
 	"bbm-tracking/internal/utils"
 	"errors"
+	"log"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -18,41 +19,74 @@ func NewAuthService(userRepo *repository.UserRepository) *AuthService {
 }
 
 type LoginRequest struct {
-	NoPekerja string `json:"no_pekerja"` // CHANGED from username
+	NoPekerja string `json:"no_pekerja"`
 	Password  string `json:"password"`
 }
 
 type RegisterRequest struct {
-	NoPekerja string `json:"no_pekerja"` // CHANGED from username
+	NoPekerja string `json:"no_pekerja"`
 	Password  string `json:"password"`
 	Role      string `json:"role"`
 	Nama      string `json:"nama"`
 }
 
+type UserResponse struct {
+	ID        string `json:"id"`
+	NoPekerja string `json:"no_pekerja"`
+	Nama      string `json:"nama"`
+	Role      string `json:"role"`
+	CreatedAt string `json:"created_at"`
+}
+
 type AuthResponse struct {
-	Token string      `json:"token"`
-	User  models.User `json:"user"`
+	Token string       `json:"token"`
+	User  UserResponse `json:"user"`
 }
 
 func (s *AuthService) Login(req LoginRequest) (*AuthResponse, error) {
 	user, err := s.userRepo.FindByNoPekerja(req.NoPekerja)
 	if err != nil {
+		log.Printf("❌ User not found: %s", req.NoPekerja)
 		return nil, errors.New("invalid credentials")
 	}
 
+	log.Printf("✅ User found: %s (ID: %s)", user.Nama, user.ID)
+
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		log.Printf("❌ Password mismatch for user: %s", req.NoPekerja)
 		return nil, errors.New("invalid credentials")
 	}
+
+	log.Printf("✅ Password correct")
 
 	token, err := utils.GenerateToken(user.ID, user.Role)
 	if err != nil {
+		log.Printf("❌ Token generation failed: %v", err)
 		return nil, err
 	}
 
-	return &AuthResponse{
+	log.Printf("✅ Token generated (length: %d)", len(token))
+	log.Printf("📤 Preparing response...")
+	log.Printf("   User ID: %s", user.ID)
+	log.Printf("   User ID Type: %T", user.ID)
+	log.Printf("   Nama: %s", user.Nama)
+	log.Printf("   No Pekerja: %s", user.NoPekerja)
+
+	// Return response WITHOUT password
+	response := &AuthResponse{
 		Token: token,
-		User:  *user,
-	}, nil
+		User: UserResponse{
+			ID:        user.ID,
+			NoPekerja: user.NoPekerja,
+			Nama:      user.Nama,
+			Role:      user.Role,
+			CreatedAt: user.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		},
+	}
+
+	log.Printf("✅ Response prepared. User.ID in response: %s", response.User.ID)
+
+	return response, nil
 }
 
 func (s *AuthService) Register(req RegisterRequest) (*AuthResponse, error) {
@@ -83,8 +117,15 @@ func (s *AuthService) Register(req RegisterRequest) (*AuthResponse, error) {
 		return nil, err
 	}
 
+	// Return response WITHOUT password
 	return &AuthResponse{
 		Token: token,
-		User:  *user,
+		User: UserResponse{
+			ID:        user.ID,
+			NoPekerja: user.NoPekerja,
+			Nama:      user.Nama,
+			Role:      user.Role,
+			CreatedAt: user.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		},
 	}, nil
 }

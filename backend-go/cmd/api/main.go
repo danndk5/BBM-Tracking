@@ -101,13 +101,13 @@ func main() {
 	// Trip routes (Protected - butuh login)
 	trips := api.Group("/trips", middleware.AuthMiddleware())
 
-	// Untuk Dashboard Supervisor
+	// PENTING: Route spesifik HARUS di atas route dinamis (:id)
+	trips.Get("/active", tripHandler.GetActiveTrip) // ← PINDAH KE ATAS!
+	trips.Post("/", tripHandler.CreateTrip)         // Create new trip
+
+	// Route dinamis di bawah
 	trips.Get("/", tripHandler.GetAllTrips)    // Get all trips
 	trips.Get("/:id", tripHandler.GetTripByID) // Get trip by ID
-
-	// Untuk Driver Mobile App
-	trips.Post("/", tripHandler.CreateTrip)         // Create new trip
-	trips.Get("/active", tripHandler.GetActiveTrip) // Get driver's active trip
 
 	// Delivery routes (untuk update status per SPBU)
 	delivery := api.Group("/deliveries", middleware.AuthMiddleware())
@@ -123,6 +123,6 @@ func main() {
 	}
 
 	log.Printf("🚀 Server running on http://0.0.0.0:%s", port)
-	log.Printf("access from device: http://192.168.216.80:%s", port)
+	log.Printf("📱 Access from device: http://192.168.216.80:%s", port)
 	log.Fatal(app.Listen("0.0.0.0:" + port))
 }

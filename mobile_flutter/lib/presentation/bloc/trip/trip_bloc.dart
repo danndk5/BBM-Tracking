@@ -31,23 +31,32 @@ class TripBloc extends Bloc<TripEvent, TripState> {
   ) async {
     emit(TripLoading());
 
-    // Ambil user ID dari cache
+    // Ambil user dari cache
     final userResult = await authRepository.getCachedUser();
     
     String? userId;
     userResult.fold(
       (failure) {
-        print('ERROR: ${failure.message}');
+        print('❌ ERROR getting cached user: ${failure.message}');
         userId = null;
       },
       (user) {
-        print('USER: ${user?.nama}, ID: ${user?.id}');
+        if (user != null) {
+          userId = user.id;  // ← FIX INI! SET userId dari user.id
+          print('✅ USER FOUND: ${user.nama}');
+          print('✅ USER ID: $userId');
+          print('✅ TOKEN EXISTS: ${user.token != null && user.token!.isNotEmpty}');
+        } else {
+          print('❌ User is null');
+          userId = null;
+        }
       },
     );
 
-    print('USERID YANG DIKIRIM: $userId');
+    print('📤 USER ID YANG AKAN DIKIRIM: $userId');
 
-    if (userId == null || userId == '') {
+    if (userId == null || userId!.isEmpty) {
+      print('❌ STOP: User ID null atau kosong, tidak bisa create trip');
       emit(const TripError('User tidak ditemukan, silakan login ulang'));
       return;
     }
@@ -60,11 +69,26 @@ class TripBloc extends Bloc<TripEvent, TripState> {
       'spbu_id': event.spbuId,
     };
 
+    print('📦 DATA CREATE TRIP:');
+    print('   - user_id: ${data['user_id']}');
+    print('   - no_kendaraan: ${data['no_kendaraan']}');
+    print('   - nama_driver: ${data['nama_driver']}');
+    print('   - nama_awak2: ${data['nama_awak2']}');
+    print('   - spbu_id: ${data['spbu_id']}');
+    print('🚀 Calling createTripUseCase...');
+
     final result = await createTripUseCase(data);
 
     result.fold(
-      (failure) => emit(TripError(failure.message)),
-      (trip) => emit(TripCreated(trip)),
+      (failure) {
+        print('❌ CREATE TRIP FAILED: ${failure.message}');
+        emit(TripError(failure.message));
+      },
+      (trip) {
+        print('✅ CREATE TRIP SUCCESS!');
+        print('   Trip ID: ${trip.id}');
+        emit(TripCreated(trip));
+      },
     );
   }
 

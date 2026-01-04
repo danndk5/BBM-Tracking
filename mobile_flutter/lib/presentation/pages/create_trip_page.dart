@@ -30,6 +30,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
   @override
   void initState() {
     super.initState();
+    print('📄 CREATE TRIP PAGE: initState');
     context.read<TripBloc>().add(LoadSpbuList());
   }
 
@@ -42,8 +43,17 @@ class _CreateTripPageState extends State<CreateTripPage> {
   }
 
   void _handleCreateTrip() {
-    if (_formKey.currentState!.validate()) {
+    print('\n🔵 ========================================');
+    print('🔵 BUTTON "BUAT TRIP" CLICKED!');
+    print('🔵 ========================================');
+    
+    print('📋 Form validation starting...');
+    final isValid = _formKey.currentState!.validate();
+    print('📋 Form valid: $isValid');
+    
+    if (isValid) {
       if (_selectedSpbu == null) {
+        print('❌ SPBU not selected');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Pilih SPBU tujuan'),
@@ -53,18 +63,40 @@ class _CreateTripPageState extends State<CreateTripPage> {
         return;
       }
 
-      context.read<TripBloc>().add(
-            CreateTripRequested(
-              noKendaraan: Validators.normalizeNomorKendaraan(
-                _noKendaraanController.text,
+      final noKendaraan = Validators.normalizeNomorKendaraan(
+        _noKendaraanController.text,
+      );
+      final namaDriver = _namaDriverController.text.trim();
+      final namaAwak2 = _namaAwak2Controller.text.trim().isEmpty
+          ? null
+          : _namaAwak2Controller.text.trim();
+      final spbuId = _selectedSpbu!.id;
+
+      print('✅ All validation passed!');
+      print('📦 Data to send:');
+      print('   - No Kendaraan: $noKendaraan');
+      print('   - Nama Driver: $namaDriver');
+      print('   - Nama Awak 2: $namaAwak2');
+      print('   - SPBU ID: $spbuId');
+      print('   - SPBU Name: ${_selectedSpbu!.nama}');
+      
+      print('🚀 Dispatching CreateTripRequested event...');
+      
+      try {
+        context.read<TripBloc>().add(
+              CreateTripRequested(
+                noKendaraan: noKendaraan,
+                namaDriver: namaDriver,
+                namaAwak2: namaAwak2,
+                spbuId: spbuId,
               ),
-              namaDriver: _namaDriverController.text.trim(),
-              namaAwak2: _namaAwak2Controller.text.trim().isEmpty
-                  ? null
-                  : _namaAwak2Controller.text.trim(),
-              spbuId: _selectedSpbu!.id,
-            ),
-          );
+            );
+        print('✅ Event dispatched successfully');
+      } catch (e) {
+        print('💥 ERROR dispatching event: $e');
+      }
+    } else {
+      print('❌ Form validation failed');
     }
   }
 
@@ -76,11 +108,17 @@ class _CreateTripPageState extends State<CreateTripPage> {
       ),
       body: BlocListener<TripBloc, TripState>(
         listener: (context, state) {
+          print('👂 BlocListener received state: ${state.runtimeType}');
+          
           if (state is SpbuListLoaded) {
+            print('✅ SPBU List loaded: ${state.spbuList.length} items');
             setState(() {
               _spbuList = state.spbuList;
             });
           } else if (state is TripCreated) {
+            print('✅ TRIP CREATED SUCCESSFULLY!');
+            print('   Trip ID: ${state.trip.id}');
+            
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Trip berhasil dibuat'),
@@ -90,17 +128,23 @@ class _CreateTripPageState extends State<CreateTripPage> {
             Navigator.pop(context);
             Navigator.pushReplacementNamed(context, '/home');
           } else if (state is TripError) {
+            print('❌ TRIP ERROR!');
+            print('   Error message: ${state.message}');
+            
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: Colors.red,
               ),
             );
+          } else if (state is TripLoading) {
+            print('⏳ Trip Loading...');
           }
         },
         child: BlocBuilder<TripBloc, TripState>(
           builder: (context, state) {
             if (state is TripLoading && _spbuList.isEmpty) {
+              print('⏳ Loading SPBU list...');
               return const Center(child: CircularProgressIndicator());
             }
 
@@ -149,6 +193,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
                         );
                       }).toList(),
                       onChanged: (value) {
+                        print('🏪 SPBU selected: ${value?.nama}');
                         setState(() {
                           _selectedSpbu = value;
                         });
