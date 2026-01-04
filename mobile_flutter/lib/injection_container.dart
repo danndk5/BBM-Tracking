@@ -38,6 +38,7 @@ Future<void> init() async {
         createTripUseCase: sl(),
         getActiveTripUseCase: sl(),
         tripRepository: sl(),
+        authRepository: sl(),
       ));
   sl.registerFactory(() => DeliveryBloc(
         updateTibaUseCase: sl(),
